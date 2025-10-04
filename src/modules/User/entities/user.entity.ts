@@ -1,52 +1,67 @@
-import { ObjectId } from "mongodb";
-import { BeforeInsert, BeforeUpdate, Column, Entity, ObjectIdColumn } from "typeorm";
+import { ObjectId } from 'mongodb';
+import { RolesEnum } from 'src/modules/User/enums/role.enum';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  Index,
+  ObjectIdColumn,
+} from 'typeorm';
 
-@Entity({name:'users'})
-export class User{
-    
-    @ObjectIdColumn({name:'_id'})
-    _id:ObjectId;
 
-    @Column({name:'full_name'})
-    fullName:string;
+@Entity({ name: 'users' })
+@Index(['email'], { unique: true })
+export class User {
+  @ObjectIdColumn({ name: '_id' })
+  _id: ObjectId;
 
-    @Column()
-    email:string;
+  @Column()
+  fullName: string;
 
-    @Column()
-    password:string;
+  @Column()
+  email: string;
 
-    @Column()
-    createdAt:Date;
+  @Column()
+  password: string;
 
-    @Column()
-    updatedAt:Date;
+  @Column()
+  role: RolesEnum;
 
-    @Column()
-    isBlocked:boolean;
+  @Column()
+  fcmToken:string
 
-    @Column()
-    isDeleted:boolean;
+  @Column()
+  createdAt: Date;
 
-    constructor(){
-        this.isBlocked=false;
-        this.isDeleted=false;
+  @Column()
+  updatedAt: Date;
+
+  @Column()
+  isBlocked: boolean;
+
+  @Column()
+  isDeleted: boolean;
+
+  constructor() {
+    this.isBlocked = false;
+    this.isDeleted = false;
+  }
+
+  @BeforeInsert()
+  setCreatedAt() {
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
+    if (this.isBlocked === undefined) {
+      this.isBlocked = false;
     }
-
-    @BeforeInsert()
-    setCreatedAt(){
-        this.createdAt=new Date();
-        this.updatedAt=new Date();
-        if(this.isBlocked===undefined){
-            this.isBlocked=false
-        }
-        if(this.isDeleted===undefined){
-            this.isDeleted=false
-        }
+    if (this.isDeleted === undefined) {
+      this.isDeleted = false;
     }
+  }
 
-    @BeforeUpdate()
-    setUpdatedAt(){
-        this.updatedAt=new Date();
-    }
+  @BeforeUpdate()
+  setUpdatedAt() {
+    this.updatedAt = new Date();
+  }
 }

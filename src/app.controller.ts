@@ -1,13 +1,13 @@
-import { Controller, Get } from '@nestjs/common';
-
+import { Controller, Get, Inject, OnModuleInit, UseGuards } from '@nestjs/common';
+import { Public } from './common/decorators/public.decorator';
 
 @Controller()
-export class AppController {
+export class AppController{
 
 
+  @Public()
   @Get()
   getHello(): string {
-    return "OLDCRISIS API is running";
+    return 'OLDCRISIS API is running';
   }
-
 }

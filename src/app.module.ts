@@ -1,31 +1,49 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AuthModule } from './modules/Auth/auth.module';
 import { UserModule } from './modules/User/user.module';
-import { AuthService } from './modules/Auth/auth.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { authConfig } from './config/auth.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './modules/User/entities/user.entity';
-import { dbConfig } from './config/db.config';
+import { RolesGuard } from './common/gurads/roles.guard';
+import { APP_GUARD } from '@nestjs/core';
+import jwtConfig from './config/jwt.config';
+import dbConfig from './config/db.config';
+import { AuthGuard } from './modules/Auth/guards/jwt.guard';
+import { JwtModule } from '@nestjs/jwt';
+import mailerConfig from './config/mailer.config';
+import { OtpVerification } from './modules/User/entities/otpVerification.entity';
 
+const ENV = process.env.NODE_ENV;
 
 @Module({
   imports: [
-    ConfigModule.forRoot({load: [authConfig, dbConfig], ignoreEnvFile:true}),
+    ConfigModule.forRoot({
+      load: [dbConfig, jwtConfig, mailerConfig],
+      isGlobal: true,
+    }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        type: 'mongodb',
-        url: configService.get<string>('url'),
-        entities: [User]
+        type: configService.get('db.type'),
+        url: configService.get('db.url'),
+        entities: [User, OtpVerification],
+        synchronize: true,
+        logging: true,
       }),
-      inject: [ConfigService]
     }),
     UserModule,
-    AuthModule
+    AuthModule,
+    JwtModule,
   ],
   controllers: [AppController],
-  providers: [ AuthService],
+
+  providers: [
+    { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: RolesGuard }
+  ],
 })
-export class AppModule {}
+export class AppModule {
+  
+
+}
