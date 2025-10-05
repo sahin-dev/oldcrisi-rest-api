@@ -2,21 +2,21 @@ import { CallHandler, ExecutionContext, NestInterceptor } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Response } from "express";
 import { map, Observable } from "rxjs";
-import { ApiResponseKey } from "../decorators/apiResponseMessage.decorator";
+import { ApiResponseMessageKey } from "../decorators/apiResponseMessage.decorator";
 
 export interface ApiResponse<T> {
     success:true,
     message:string,
-    statusCode:string,
+    statusCode:number,
     data:T
 }
 
 export class ResponseTransformerInterceptor<T> implements NestInterceptor<T, ApiResponse<T>>{
    constructor( private readonly reflector:Reflector){}
 
-    intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
+    intercept(context: ExecutionContext, next: CallHandler<any>): Observable<ApiResponse<T>> | Promise<Observable<ApiResponse<T>>> {
         
-         const apiResponseMessage = this.reflector.getAllAndOverride(ApiResponseKey, [context.getClass(), context.getHandler()])
+         const apiResponseMessage = this.reflector.getAllAndOverride(ApiResponseMessageKey, [context.getClass(), context.getHandler()])
 
         return next.handle().pipe(
             map(data => {

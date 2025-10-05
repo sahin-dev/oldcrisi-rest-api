@@ -1,3 +1,4 @@
+import { Exclude, Expose, Transform } from 'class-transformer';
 import { ObjectId } from 'mongodb';
 import { RolesEnum } from 'src/modules/User/enums/role.enum';
 import {
@@ -13,6 +14,8 @@ import {
 @Entity({ name: 'users' })
 @Index(['email'], { unique: true })
 export class User {
+   @Expose()
+
   @ObjectIdColumn({ name: '_id' })
   _id: ObjectId;
 
@@ -23,6 +26,7 @@ export class User {
   email: string;
 
   @Column()
+  @Exclude()
   password: string;
 
   @Column()

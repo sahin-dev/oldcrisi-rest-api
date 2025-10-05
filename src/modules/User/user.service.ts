@@ -30,6 +30,8 @@ export class UserService {
         private readonly smsProvider: SmsProvider,
     ) { }
 
+   
+
     findAll(): Promise<User[]> {
         return this.userRepository.find();
     }
@@ -38,6 +40,7 @@ export class UserService {
 
         const user = await this.userRepository.findOneBy({
             where: { _id: userId },
+            
         });
 
         if (!user) throw new NotFoundException('user not found');
@@ -126,7 +129,7 @@ export class UserService {
 
         this.smsProvider.sendmail(
             user.email,
-            'Verfication code',
+            'Reset password verfication code',
             resetPassEmailTemp({name:user.fullName, verificationCode: otp, verificationCodeExpire:15}),
         );
 

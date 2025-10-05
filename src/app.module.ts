@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule, OnModuleInit } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AuthModule } from './modules/Auth/auth.module';
 import { UserModule } from './modules/User/user.module';
@@ -13,6 +13,15 @@ import { AuthGuard } from './modules/Auth/guards/jwt.guard';
 import { JwtModule } from '@nestjs/jwt';
 import mailerConfig from './config/mailer.config';
 import { OtpVerification } from './modules/User/entities/otpVerification.entity';
+import { CategoryModule } from './modules/category/category.module';
+import { Category } from './modules/category/entities/category.entity';
+import { ProductModule } from './modules/product/product.module';
+import { Product } from './modules/product/entities/product.entity';
+import { OrderModule } from './modules/order/order.module';
+import { BlogModule } from './modules/blog/blog.module';
+import { PaymentModule } from './modules/payment/payment.module';
+import { BuilderModule } from './modules/builder/builder.module';
+import { Blog } from './modules/blog/entities/blog.entity';
 
 const ENV = process.env.NODE_ENV;
 
@@ -27,14 +36,27 @@ const ENV = process.env.NODE_ENV;
       useFactory: (configService: ConfigService) => ({
         type: configService.get('db.type'),
         url: configService.get('db.url'),
-        entities: [User, OtpVerification],
+        entities: [
+          User,
+          OtpVerification, 
+          Category, 
+          Product,
+          Blog
+        ],
         synchronize: true,
         logging: true,
       }),
+  
     }),
     UserModule,
     AuthModule,
     JwtModule,
+    CategoryModule,
+    ProductModule,
+    OrderModule,
+    BlogModule,
+    PaymentModule,
+    BuilderModule
   ],
   controllers: [AppController],
 

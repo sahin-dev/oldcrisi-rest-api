@@ -15,7 +15,7 @@ import { SignInDto } from './dtos/signin.dto';
 import { Public } from 'src/common/decorators/public.decorator';
 import { type Request } from 'express';
 import { ObjectId } from 'mongodb';
-import { ApiResponse } from 'src/common/decorators/apiResponseMessage.decorator';
+import { ResponseMessage } from 'src/common/decorators/apiResponseMessage.decorator';
 
 @Controller({path:'auth', version:"12"})
 export class AuthController {
@@ -38,7 +38,7 @@ export class AuthController {
   }
 
   @Get('me')
-  @ApiResponse("User details fetched successfully")
+  @ResponseMessage("User details fetched successfully")
   async getAuthenticatedUser(@Req() request: Request) {
     const req = request['user'];
     const sub = req['sub'] as string

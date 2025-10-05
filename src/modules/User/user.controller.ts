@@ -1,12 +1,15 @@
 import {
   Body,
+  ClassSerializerInterceptor,
   Controller,
   Get,
   Param,
   Patch,
   Post,
   Req,
+  SerializeOptions,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Roles } from 'src/common/decorators/role.decorator';
@@ -19,8 +22,13 @@ import { ForgetPasswordDto } from './dtos/forget-password.dto';
 import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 import { ParseIdPipe } from 'src/common/pipes/parseIdPipe';
+import { User } from './entities/user.entity';
+import { GetUserDto } from './dtos/get-user.dto';
+import { ResponseMessage } from 'src/common/decorators/apiResponseMessage.decorator';
 
 @Controller('users/')
+@UseInterceptors(ClassSerializerInterceptor)
+@SerializeOptions({type:GetUserDto})
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -74,16 +82,18 @@ export class UserController {
   }
 
   @Post('verify-otp')
+  @ResponseMessage('Otp verified successfully')
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
     const response = await this.userService.verifyOtp(
       verifyOtpDto.token,
       verifyOtpDto.code,
     );
 
-    return { message: 'Otp verified successfully', data: response };
+    return response
   }
 
   @Post('reset-password')
+  @ResponseMessage('password reset successfully')
   async resetPassword(
     @Body() resetPasswordDto: ResetPasswordDto,
     @Req() request: Request,
@@ -96,6 +106,6 @@ export class UserController {
       resetPasswordDto.newPassword,
     );
 
-    return { message: 'password reset successfully', data: response };
+    return  response
   }
 }
