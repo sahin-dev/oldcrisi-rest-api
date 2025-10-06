@@ -22,6 +22,7 @@ import { BlogModule } from './modules/blog/blog.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { BuilderModule } from './modules/builder/builder.module';
 import { Blog } from './modules/blog/entities/blog.entity';
+import { Order } from './modules/order/entities/order.entity';
 
 const ENV = process.env.NODE_ENV;
 
@@ -41,10 +42,11 @@ const ENV = process.env.NODE_ENV;
           OtpVerification, 
           Category, 
           Product,
-          Blog
+          Blog,
+          Order
         ],
         synchronize: true,
-        logging: true,
+        logging: ['query'],
       }),
   
     }),

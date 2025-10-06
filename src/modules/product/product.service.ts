@@ -86,6 +86,7 @@ export class ProductService {
         return await this.productrepository.find({wher:{userId}})
     }
 
+
     async getProductDetails (productId:ObjectId){
         const product = await this.productrepository.findOne({where:{_id:productId}})
 
@@ -166,7 +167,7 @@ export class ProductService {
         await this.productrepository.delete({_id:product._id})
     }
 
-    deleteProductImage(imagePath:string):Promise<void>{
+    private deleteProductImage(imagePath:string):Promise<void>{
 
         return new Promise(( resolve, reject) => {
             const resolvedPath = path.resolve(imagePath)
