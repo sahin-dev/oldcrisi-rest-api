@@ -40,7 +40,7 @@ export class AuthService {
       createUserDto.password,
     );
 
-    const createdUser = this.userService.craeteUser({
+    const createdUser = this.userService.createUser({
       fullName: createUserDto.fullName,
       email: createUserDto.email,
       password: hashedPassword,

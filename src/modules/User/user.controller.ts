@@ -4,8 +4,10 @@ import {
   Controller,
   Get,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
+  Query,
   Req,
   SerializeOptions,
   UseGuards,
@@ -25,6 +27,7 @@ import { ParseIdPipe } from 'src/common/pipes/parseIdPipe';
 import { User } from './entities/user.entity';
 import { GetUserDto } from './dtos/get-user.dto';
 import { ResponseMessage } from 'src/common/decorators/apiResponseMessage.decorator';
+import { RolesEnum } from './enums/role.enum';
 
 @Controller('users/')
 @UseInterceptors(ClassSerializerInterceptor)
@@ -38,14 +41,16 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Roles('admin')
-  @Get(':id')
-  async getUser(@Param('id', ParseIdPipe) id: ObjectId) {
+  @Get("growth")
+  @Roles(RolesEnum.ADMIN)
+  async getUserGrowth(@Query("year", ParseIntPipe) year:number){
+    console.log(year)
+    const userGrowth = await this.userService.getUserGrowth(year)
 
-    const user = await this.userService.findOne(id);
-
-    return user;
+    return userGrowth
   }
+
+ 
 
   @Patch()
   async updadeUser(@Body() updateData: UpdateUserDto, @Req() request: Request) {
@@ -66,7 +71,7 @@ export class UserController {
   ) {
     const user = request['user'];
     const updateUserPassword = await this.userService.updatePassword(
-      user.sub,
+     new ObjectId( user.sub),
       changePasswordDto.previousPassword,
       changePasswordDto.newPassword,
     );
@@ -108,4 +113,14 @@ export class UserController {
 
     return  response
   }
+
+   @Roles('admin')
+  @Get(':id')
+  async getUser(@Param('id', ParseIdPipe) id: ObjectId) {
+
+    const user = await this.userService.findOne(id);
+
+    return user;
+  }
+  
 }

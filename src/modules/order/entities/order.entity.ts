@@ -2,6 +2,7 @@ import { ObjectId } from "mongodb";
 import { BaseEntity } from "src/common/entities/base.entity";
 import { Column, Entity } from "typeorm";
 import { OrderStatusEnum } from "../enums/orderStatus.enum";
+import { Transform, Type } from "class-transformer";
 
 
 
@@ -22,7 +23,12 @@ export class Address {
 export class OrderItem {
 
     @Column()
+    @Transform(obj => new ObjectId(obj.value as string))
     product:ObjectId
+
+    @Column()
+    @Transform(obj => new ObjectId(obj.value as string))
+    variant:ObjectId
 
     @Column()
     quantity:number
@@ -53,7 +59,13 @@ export class Order extends BaseEntity{
     userId:ObjectId
 
     @Column()
-    ietms:OrderItem[]
+    supplier:ObjectId
+
+    @Column()
+    responsible:string
+
+    @Column()
+    items:OrderItem[]
 
     @Column()
     total:number

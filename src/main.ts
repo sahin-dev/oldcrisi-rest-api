@@ -1,11 +1,11 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { ConsoleLogger, Global, RequestMethod, ValidationPipe } from '@nestjs/common';
+import { ConsoleLogger, RequestMethod, ValidationPipe } from '@nestjs/common';
 import { GlobalHttpExceptionFilter } from './common/filters/httpException.filter';
 import { ResponseTransformerInterceptor } from './common/interceptors/responseTransformer.interceptor';
 import { join } from 'path';
-import { GlobalExceptionFilter } from './common/filters/GlobalException.filter';
+
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -15,8 +15,9 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {prefix:"/uploads"})
 
   app.setGlobalPrefix('api/v1', {
-    exclude:[{path:"/", method:RequestMethod.GET}, {path:'/providers', method:RequestMethod.GET}]
+    exclude:[{path:"/", method:RequestMethod.GET}]
   });
+
 
   app.useGlobalPipes(
     new ValidationPipe({

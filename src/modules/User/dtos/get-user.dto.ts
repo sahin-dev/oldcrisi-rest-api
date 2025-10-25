@@ -13,6 +13,5 @@ export class GetUserDto extends OmitType(CreateUserDto, ['password']) {
 
     phone: string;
 
-    @Exclude()
-    password: string;
+    role:string
 }

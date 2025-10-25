@@ -2,6 +2,28 @@ import { ObjectId } from "mongodb";
 import { BaseEntity } from "src/common/entities/base.entity";
 import { Column, Entity } from "typeorm";
 
+
+
+@Entity({
+    name:'product_variants'
+})
+export class ProductVariant extends BaseEntity{
+
+    @Column()
+    product:ObjectId
+
+    @Column()
+    size:string
+
+    @Column()
+    price:number
+
+    @Column()
+    stock:number
+
+    
+}
+
 @Entity({
     name:'products'
 })
@@ -23,9 +45,6 @@ export class Product extends BaseEntity{
     category:ObjectId
 
     @Column()
-    price: number
-
-    @Column()
     description:string
 
     @Column()
@@ -33,4 +52,5 @@ export class Product extends BaseEntity{
 
     @Column()
     images:string[]
+    
 }

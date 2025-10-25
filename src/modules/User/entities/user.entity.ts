@@ -20,10 +20,19 @@ export class User {
   _id: ObjectId;
 
   @Column()
+  avatar:string
+
+  @Column()
   fullName: string;
 
   @Column()
   email: string;
+
+  @Column()
+  stripeCustomerId:string
+
+  @Column()
+  phone:string
 
   @Column()
   @Exclude()
@@ -39,6 +48,9 @@ export class User {
   createdAt: Date;
 
   @Column()
+  point:number
+
+  @Column()
   updatedAt: Date;
 
   @Column()
@@ -50,6 +62,7 @@ export class User {
   constructor() {
     this.isBlocked = false;
     this.isDeleted = false;
+    this.point = 0;
   }
 
   @BeforeInsert()

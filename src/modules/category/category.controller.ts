@@ -20,14 +20,14 @@ export class CategoryController {
         limits: { files: 1, fileSize:1000000 },
         storage: diskStorage({
             destination:'./uploads/categories',
-            filename:(req, file, callbask) => {
-                callbask(null, file.originalname)
+            filename:(req, file, callback) => {
+                callback(null, file.originalname)
             },
         
         })
 
     }))
-    
+
     @ResponseMessage("category created successfully")
     async addCategory(@Body() createCategoryDto: CreateCategoryDto, @UploadedFile() file: Express.Multer.File) {
 
@@ -49,10 +49,10 @@ export class CategoryController {
         limits: { files: 1, fileSize:1000000 },
         storage: diskStorage({
             destination:'./uploads/categories',
-            filename:async (req, file, callbask) => {
+            filename:async (req, file, callback) => {
                
                 
-                callbask(null, file.originalname)
+                callback(null, file.originalname)
             },
         
         })

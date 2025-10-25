@@ -1,5 +1,25 @@
 import { Type } from "class-transformer"
-import { IsBoolean, IsIn, IsNotEmpty, IsNumber, IsString } from "class-validator"
+import { IsArray, IsBoolean, IsNotEmpty, IsNumber, IsString } from "class-validator"
+import { ObjectId } from "mongodb"
+
+
+class ProductVariantDto{
+
+    @IsString()
+    @IsNotEmpty()
+    @Type(() => ObjectId)
+    product:ObjectId
+
+    @IsString()
+    @IsNotEmpty()
+    size:string
+
+    @IsNumber()
+    @IsNotEmpty()
+    @Type(() => Number)
+    price:number
+
+}
 
 export class CreateProductDto{
 
@@ -29,8 +49,8 @@ export class CreateProductDto{
     @IsNotEmpty()
     categoryId:string
 
-    @IsString()
+    @Type(() => ProductVariantDto)
     @IsNotEmpty()
-    @IsIn(['user', 'admin'])
-    createdBy:string
+    @IsArray()
+    variants:ProductVariantDto[]
 }

@@ -17,6 +17,7 @@ import { OtpVerification } from './entities/otpVerification.entity';
 import { OtpStatusEnum } from './enums/otpStatus.enum';
 import { OtpTypeEnum } from './enums/otpType.enum';
 import resetPassEmailTemp from 'src/common/templates/forget-password';
+import { GetUserDto } from './dtos/get-user.dto';
 
 @Injectable()
 export class UserService {
@@ -36,20 +37,26 @@ export class UserService {
         return this.userRepository.find();
     }
 
-    async findOne(userId: ObjectId): Promise<User | null> {
+    async findOne(userId: ObjectId): Promise<GetUserDto | null> {
 
         const user = await this.userRepository.findOneBy({
             where: { _id: userId },
-            
+        
         });
 
         if (!user) throw new NotFoundException('user not found');
 
-        return user;
+        return {
+            _id:user._id,
+            email:user.email,
+            fullName:user.fullName,
+            phone:user.phone,
+            role:user.role
+        };
     }
     
 
-    craeteUser(createUserDto: Partial<User>): Promise<User> {
+    createUser(createUserDto: Partial<User>): Promise<User> {
         const newUser = this.userRepository.create({
             ...createUserDto,
             role: RolesEnum.USER,
@@ -88,7 +95,7 @@ export class UserService {
         newPassword: string,
     ): Promise<User> {
 
-        const user = await this.findOne(id);
+        const user = await this.userRepository.findOne({where:{_id:id}});
 
         if (!user) {
             throw new NotFoundException('user not found');
@@ -175,7 +182,7 @@ export class UserService {
 
     async resetPassword(userId: ObjectId, verificationId: string, newPassword: string) {
 
-        const user = await this.findOne(userId)
+        const user = await this.userRepository.findOne({where:{_id:userId}})
 
         if (!user) {
             throw new NotFoundException("user not found")
@@ -205,7 +212,7 @@ export class UserService {
     }
 
     async deleteUser(userId: ObjectId, password: string) {
-        const user = await this.findOne(userId)
+        const user = await this.userRepository.findOne({where:{_id:userId}})
 
         if(!user){
             throw new NotFoundException("user not found!")
@@ -229,7 +236,40 @@ export class UserService {
         return otp.toString();
     }
 
-    getObjectId(id: string): ObjectId {
+    private getObjectId(id: string): ObjectId {
         return new ObjectId(id);
+    }
+
+    async updateUserPoint(userId:ObjectId, point:number){
+        const user = await this.findOne(userId)
+        if(!user){
+            throw new NotFoundException("User not found")
+        }
+
+        
+        await this.userRepository.update({ _id: user._id }, { point: point } );
+    }
+
+     async getUserGrowth(year:number){
+        const start = new Date(year, 0, 1);
+        const end = new Date(year + 1, 0, 1);
+
+        const pipeline = [
+            { $match: { createdAt: { $gte: start, $lt: end } } },
+            { $group: { _id: { $month: "$createdAt" }, count: { $sum: 1 } } },
+            { $sort: { _id: 1 } },
+        ];
+
+        const cursor = this.userRepository.aggregate(pipeline);
+        const results: Array<{ _id: number; count: number }> = await cursor.toArray();
+
+        const months = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, count: 0 }));
+        results.forEach(r => {
+            if (r._id >= 1 && r._id <= 12) {
+                months[r._id - 1].count = r.count;
+            }
+        });
+
+        return months; 
     }
 }

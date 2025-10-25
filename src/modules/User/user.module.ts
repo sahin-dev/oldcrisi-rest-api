@@ -28,7 +28,7 @@ import { OtpVerification } from './entities/otpVerification.entity';
       useClass: SmtpProvider,
     },
   ],
-  exports: [UserService],
+  exports: [UserService, HashingProvider, SmsProvider, TypeOrmModule.forFeature([User])],
 })
 export class UserModule{
  

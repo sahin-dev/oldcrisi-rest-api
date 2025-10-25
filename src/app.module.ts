@@ -16,13 +16,30 @@ import { OtpVerification } from './modules/User/entities/otpVerification.entity'
 import { CategoryModule } from './modules/category/category.module';
 import { Category } from './modules/category/entities/category.entity';
 import { ProductModule } from './modules/product/product.module';
-import { Product } from './modules/product/entities/product.entity';
+import { Product, ProductVariant } from './modules/product/entities/product.entity';
 import { OrderModule } from './modules/order/order.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { BuilderModule } from './modules/builder/builder.module';
 import { Blog } from './modules/blog/entities/blog.entity';
 import { Order } from './modules/order/entities/order.entity';
+import { RatingModule } from './modules/rating/rating.module';
+import { Rating } from './modules/rating/entities/rating.entity';
+import { FavouriteModule } from './modules/favourite/favourite.module';
+import { Favourite } from './modules/favourite/entities/favourite.entity';
+import { Builder } from './modules/builder/entities/builder.entity';
+import { SitePolicyModule } from './modules/site-policy/site-policy.module';
+import { Policy } from './modules/site-policy/entities/policy.entity';
+import { SwapModule } from './modules/swap/swap.module';
+import { Swap } from './modules/swap/entities/swap.entity';
+import { NotificationModule } from './modules/notification/notification.module';
+import { Notification } from './modules/notification/entities/notification.entity';
+import { Payment } from './modules/payment/entities/payment.entity';
+import { ChatModule } from './modules/chat/chat.module';
+import { Chat } from './modules/chat/entities/chat.entity';
+import { Room } from './modules/chat/entities/room.entity';
+import { TemplateModule } from './modules/template/template.module';
+import { Template } from './modules/template/entities/template.entity';
 
 const ENV = process.env.NODE_ENV;
 
@@ -42,8 +59,19 @@ const ENV = process.env.NODE_ENV;
           OtpVerification, 
           Category, 
           Product,
+          ProductVariant,
           Blog,
-          Order
+          Order,
+          Rating,
+          Favourite,
+          Builder,
+          Policy,
+          Swap,
+          Notification,
+          Payment,
+          Chat,
+          Room,
+          Template
         ],
         synchronize: true,
         logging: ['query'],
@@ -58,7 +86,14 @@ const ENV = process.env.NODE_ENV;
     OrderModule,
     BlogModule,
     PaymentModule,
-    BuilderModule
+    BuilderModule,
+    RatingModule,
+    FavouriteModule,
+    SitePolicyModule,
+    SwapModule,
+    NotificationModule,
+    ChatModule,
+    TemplateModule
   ],
   controllers: [AppController],
 
