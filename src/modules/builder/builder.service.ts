@@ -46,28 +46,28 @@ export class BuilderService {
         if(!folder){
             throw new NotFoundException("fodler not found")
         }
-        addItemDto.items.forEach(item => {
-            this.addItem(userId, folder._id, item)
-        })
+      
 
         return await this.builderRepository.findOne({where:{_id:folder._id}})
     }
 
     async addItem(userId:ObjectId, folderId:ObjectId, itemId:ObjectId){
         const folder = await this.builderRepository.findOne({where:{_id:folderId, user:userId}})
-
+        console.log("folder", folder)   
         if(!folder){
             throw new NotFoundException("folder not found")
         }
         for (let item of folder.items){
              if(item.toString() === itemId.toString()){
-               return
+               return folder
             } 
         }
        
         folder.items.push(new ObjectId(itemId))
 
-        return await this.builderRepository.save(folder)
+        const addedFolder =  await this.builderRepository.save(folder)
+        console.log("addedFolder", addedFolder)
+        return addedFolder
     }
 
     async getSpecificFolderItems(userId:ObjectId, folderId:ObjectId){

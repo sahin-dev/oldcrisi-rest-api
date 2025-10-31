@@ -39,6 +39,12 @@ export class Product extends BaseEntity{
     name:string
 
     @Column()
+    price:number
+
+    @Column()
+    sizes:string[]
+
+    @Column()
     createdBy:string
 
     @Column()

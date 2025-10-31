@@ -40,6 +40,7 @@ import { Chat } from './modules/chat/entities/chat.entity';
 import { Room } from './modules/chat/entities/room.entity';
 import { TemplateModule } from './modules/template/template.module';
 import { Template } from './modules/template/entities/template.entity';
+import { BulkOrderModule } from './modules/bulk-order/bulk-order.module';
 
 const ENV = process.env.NODE_ENV;
 
@@ -93,7 +94,8 @@ const ENV = process.env.NODE_ENV;
     SwapModule,
     NotificationModule,
     ChatModule,
-    TemplateModule
+    TemplateModule,
+    BulkOrderModule
   ],
   controllers: [AppController],
 

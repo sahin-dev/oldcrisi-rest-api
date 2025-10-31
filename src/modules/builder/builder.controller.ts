@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Req } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Req } from "@nestjs/common";
 import { CreateFolderDto } from "./dtos/create-folder.dto";
 import { BuilderService } from "./builder.service";
 import { ResponseMessage } from "src/common/decorators/apiResponseMessage.decorator";
@@ -21,10 +21,12 @@ export class BuilderController {
         return folder
     }   
 
-    @Post("/items")
-    async addItems(@Req() request:Request, @Body() addItemDto:AddItemDto){
+    @Post("/item")
+    @ResponseMessage("item added successfully")
+    @HttpCode(HttpStatus.OK)
+    async addItem(@Req() request:Request, @Body() addItemDto:AddItemDto){
         const user = request['user']
-        const result = await this.builderService.addItems(user.sub, addItemDto)
+        const result = await this.builderService.addItem(user.sub, addItemDto.folderId,  addItemDto.item)
 
         return result
     }
@@ -36,7 +38,7 @@ export class BuilderController {
         const folders = this.builderService.list(user.sub)
         return folders
     }
-    @Get("folders/:id/items")
+    @Get("folders/items/:id")
     async getFolderItems(@Param("id", ParseIdPipe) id:ObjectId, @Req() request:Request){
         const user = request['user']
 

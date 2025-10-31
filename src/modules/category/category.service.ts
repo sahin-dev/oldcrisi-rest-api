@@ -6,6 +6,8 @@ import { ConflictException, Injectable, NotFoundException } from "@nestjs/common
 import { UpdateCategoryDto } from "./dtos/update-category.dto";
 import { ObjectId } from "mongodb";
 import path from "path";
+import { plainToInstance } from "class-transformer";
+import { CategoryResponseDto } from "./dtos/category-response.dto";
 
 @Injectable()
 export class CategoryService {
@@ -22,27 +24,35 @@ export class CategoryService {
     
         const category = this.categoryRepository.create({name:creatCategoryDto.name, image: file.path})
 
-        return await this.categoryRepository.save(category)
+        const createdCategory =  await this.categoryRepository.save(category)
+
+        return this.categoryToCategoryDtoMapper(createdCategory)
     }
+
 
     async getAllCategories(){
 
-        const categories = this.categoryRepository.find({})
+        const categories = await this.categoryRepository.find({})
 
-        return categories
+        return await Promise.all(categories.map(this.categoryToCategoryDtoMapper))
     }
 
     async isCategoryExist(name:string){
         const category = await this.categoryRepository.findOneBy({name})
 
         if(category)
-            return category
+            return this.categoryToCategoryDtoMapper(category)
 
         return false
     }
 
     async findOne(id:ObjectId){
-        return await this.categoryRepository.findOneBy({_id:id})
+        const category =  await this.categoryRepository.findOneBy({_id:id})
+        if(!category){
+            throw new NotFoundException("category not found")
+        }
+
+        return this.categoryToCategoryDtoMapper(category)
     }
 
     async updateCategory(id:ObjectId,updateCategoryDto:UpdateCategoryDto, file:Express.Multer.File){
@@ -61,8 +71,15 @@ export class CategoryService {
         }
 
         const updatedCategory = await this.categoryRepository.save(category)
-        return updatedCategory
+        return this.categoryToCategoryDtoMapper(updatedCategory)
 
+    }
+
+    
+    async categoryToCategoryDtoMapper(category:Category){
+        return plainToInstance(CategoryResponseDto, category, {
+            excludeExtraneousValues:true
+        })
     }
 
 }

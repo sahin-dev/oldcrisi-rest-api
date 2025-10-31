@@ -26,14 +26,16 @@ export class ProductController {
     @UseInterceptors(FilesInterceptor("images", 5, {
         storage:diskStorage({
         
-            destination:'./uploads/product',
+            destination:'uploads/product',
             filename:(req, file, callback) => {
                 callback(null, file.originalname)
             },
         })
     }))
+
     @ResponseMessage("Product created successfully.")
     async addProuct(@Body() createProductDto:CreateProductDto, @Req() req:Request, @UploadedFiles() files:Array<Express.Multer.File>){
+
         const user = req['user']
         const product = await this.productService.addProduct(user.sub,createProductDto, files)
  
@@ -49,7 +51,7 @@ export class ProductController {
         return createdvariant
     }
 
-    @Roles('admin')
+    // @Roles('admin')
     @Get()
     async getAllProducts( @Query('category') category:string){
         

@@ -13,6 +13,8 @@ import { JwtService } from '@nestjs/jwt';
 import { type ConfigType } from '@nestjs/config';
 import jwtConfig from 'src/config/jwt.config';
 import { ObjectId } from 'typeorm';
+import { userResponseDto } from '../User/dtos/user-response.dto';
+
 
 
 @Injectable()
@@ -28,11 +30,13 @@ export class AuthService {
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
   ) {}
 
-  async register(createUserDto: CreateUserDto): Promise<User> {
+  async register(createUserDto: CreateUserDto): Promise<userResponseDto> {
     const exitstingUser = await this.userService.getUserByEmail(
       createUserDto.email,
     );
+
     if (exitstingUser) {
+
       throw new ConflictException('User with this email already exists');
     }
 
@@ -44,20 +48,27 @@ export class AuthService {
       fullName: createUserDto.fullName,
       email: createUserDto.email,
       password: hashedPassword,
+
     });
 
     return createdUser;
   }
 
-  async signIn(email: string, password: string) {
+
+  async signIn(email: string, inputPassword: string, firebaseToken:string) {
+
     const existingUser = await this.userService.getUserByEmail(email);
+
     if (!existingUser) {
-      throw new NotFoundException('User not found');
+
+      throw new NotFoundException('User not found!');
     }
+  
+    const userEncryptedPassword = await this.userService.getUserEncryptedPassword(existingUser._id)
 
     const isPasswordMatching = await this.hashingProvider.compare(
-      password,
-      existingUser.password,
+      inputPassword,
+      userEncryptedPassword
     );
 
     if (!isPasswordMatching) {
@@ -78,8 +89,12 @@ export class AuthService {
       },
     );
 
+     await this.userService.updateUserFcmToken(existingUser._id, firebaseToken)
+
     return { ...existingUser, accessToken: token };
+
   }
+
 
   async getAuthenticatedUser(userId: ObjectId) {
 

@@ -34,7 +34,7 @@ export class AuthController {
   @Post('signin')
   @HttpCode(HttpStatus.OK)
   signin(@Body() signInDto: SignInDto) {
-    return this.authService.signIn(signInDto.email, signInDto.password);
+    return this.authService.signIn(signInDto.email, signInDto.password, signInDto.fcmToken);
   }
 
   @Get('me')

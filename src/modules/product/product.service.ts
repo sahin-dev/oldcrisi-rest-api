@@ -15,6 +15,8 @@ import { UpdateProductVariantDto } from "./dtos/update-varint.dto";
 import { CreateProductVariantDto } from "./dtos/create-variant.dto";
 import { RolesEnum } from "../User/enums/role.enum";
 import { PaginationDto } from "src/common/dtos/pagination.dto";
+import { plainToInstance } from "class-transformer";
+import { ProductResponseDto } from "./dtos/product-response.dto";
 
 
 @Injectable()
@@ -50,7 +52,6 @@ export class ProductService {
            imagePath.push(file.path)
         })
         }
-      
        
         const product = this.productrepository.create({
             user:user._id,
@@ -59,7 +60,8 @@ export class ProductService {
             description: createProductDto.description,
             category:category._id, 
             createdBy: user.role, 
-            // price: createProductDto.price,
+            price: createProductDto.price,
+            sizes: createProductDto.sizes,
             swappable: createProductDto.swappable,
             images: imagePath,
         })
@@ -67,17 +69,18 @@ export class ProductService {
 
         const createdProduct =  await this.productrepository.save(product)
 
-
-        let addedVariants:Array<Promise<ProductVariant>> = []
-        createProductDto.variants.forEach(async variant => {
-            const v = this.productVariantRepo.create({...variant, product:createdProduct._id})
-            const savedVariant = this.productVariantRepo.save(v)
-            addedVariants.push(savedVariant)
-        })
-
-        return {product, variants:await Promise.all(addedVariants)}
+        const categoryDetails = await this.categoryService.findOne(new ObjectId(createdProduct.category))
+        
+    
+        return {...this.productToProductDtoMapper(createdProduct), category:categoryDetails, user}
 
     }
+
+    async productToProductDtoMapper(product:Product){
+        return plainToInstance(ProductResponseDto, product, {
+            excludeExtraneousValues:true
+        })
+    }   
 
     async getProducts(categoryStr:string | undefined, pagination:Pagination = {page:1, limit:20}){
         let skip = ( pagination.page -1) * pagination.limit
@@ -88,7 +91,15 @@ export class ProductService {
             return await this.productrepository.find({where:{category:category._id}, skip, take:pagination.limit})
         }
       
-        return await this.productrepository.find({skip, take:pagination.limit})
+        const products =  await this.productrepository.find({skip, take:pagination.limit})
+
+        const mappedProducts = products.map( async product => {
+            const productDto = plainToInstance(ProductResponseDto, product)
+
+            return productDto
+        })
+
+        return mappedProducts
     }
 
     async getMyProducts (userId:ObjectId, categoryStr?:string, pagination:Pagination = {page:1, limit:20}){
@@ -102,7 +113,16 @@ export class ProductService {
             return await this.productrepository.find({where:{userId,category:category._id}, skip, take:pagination.limit})
         }
       
-        return await this.productrepository.find({where:{user:userId}, skip, take:pagination.limit})
+        const myProducts =  await this.productrepository.find({where:{user:userId}, skip, take:pagination.limit})
+        console.log("myProducts", myProducts)   
+        const mappedProducts = myProducts.map( product => {
+            return plainToInstance(ProductResponseDto, product, {
+                excludeExtraneousValues:true
+            })
+        })
+
+
+        return mappedProducts
     }
 
 
@@ -124,7 +144,11 @@ export class ProductService {
     async findOne(productId:ObjectId){
         const product = await this.productrepository.findOne({where:{_id:productId}})
 
-        return product
+        if(!product){
+            throw new NotFoundException("Product not found")
+        }
+
+        return this.productToProductDtoMapper(product)
     }
 
     // Add product variant
@@ -165,7 +189,7 @@ export class ProductService {
         product.title = updateProductDto.title || product.title
         product.category = new ObjectId(updateProductDto.categoryId) || product.category
         product.description = updateProductDto.description || product.description
-        // product.price = updateProductDto.price || product.price
+        product.price = updateProductDto.price || product.price
         product.swappable = updateProductDto.swappable || product.swappable
 
         let images = product.images

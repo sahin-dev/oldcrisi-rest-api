@@ -8,6 +8,7 @@ export class AddItemDto {
     @Transform(obj => new ObjectId(obj.value as string))
     folderId:ObjectId
 
-    @IsArray()
-    items:[]
+    @IsNotEmpty()
+    @Transform(obj => new ObjectId(obj.value as string))
+    item:ObjectId
 }

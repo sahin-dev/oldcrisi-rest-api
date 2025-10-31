@@ -35,7 +35,6 @@ export class User {
   phone:string
 
   @Column()
-  @Exclude()
   password: string;
 
   @Column()
@@ -58,6 +57,9 @@ export class User {
 
   @Column()
   isDeleted: boolean;
+
+  @Column()
+  address:string
 
   constructor() {
     this.isBlocked = false;

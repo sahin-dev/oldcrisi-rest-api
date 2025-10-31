@@ -3,6 +3,7 @@ import {
     Body,
     Injectable,
     NotFoundException,
+    UseInterceptors,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
@@ -18,6 +19,10 @@ import { OtpStatusEnum } from './enums/otpStatus.enum';
 import { OtpTypeEnum } from './enums/otpType.enum';
 import resetPassEmailTemp from 'src/common/templates/forget-password';
 import { GetUserDto } from './dtos/get-user.dto';
+import fs from 'fs'
+import path from 'path'
+import { plainToInstance } from 'class-transformer';
+import { userResponseDto } from './dtos/user-response.dto';
 
 @Injectable()
 export class UserService {
@@ -37,7 +42,7 @@ export class UserService {
         return this.userRepository.find();
     }
 
-    async findOne(userId: ObjectId): Promise<GetUserDto | null> {
+    async findOne(userId: ObjectId): Promise<userResponseDto | null> {
 
         const user = await this.userRepository.findOneBy({
             where: { _id: userId },
@@ -46,29 +51,35 @@ export class UserService {
 
         if (!user) throw new NotFoundException('user not found');
 
-        return {
-            _id:user._id,
-            email:user.email,
-            fullName:user.fullName,
-            phone:user.phone,
-            role:user.role
-        };
+        return this.userToUserDtoMapper(user);
     }
     
 
-    createUser(createUserDto: Partial<User>): Promise<User> {
+    async createUser(createUserDto: Partial<User>): Promise<userResponseDto> {
         const newUser = this.userRepository.create({
             ...createUserDto,
             role: RolesEnum.USER,
         });
 
-        return this.userRepository.save(newUser);
+        const createdUser = await this.userRepository.save(newUser);
+
+        return this.userToUserDtoMapper(createdUser);
     }
 
-    getUserByEmail(email: string): Promise<User | null> {
-        return this.userRepository.findOneBy({ email });
+
+
+    async getUserByEmail(email: string): Promise<userResponseDto | null> {
+        const user =  await this.userRepository.findOne({where:{email}});
+        if(!user){
+            throw new NotFoundException("user not found")
+        } 
+
+        const userMapper =  this.userToUserDtoMapper(user);
+        // userMapper._id = user._id
+        return userMapper
     }
 
+    
     async isUserExist(email: string): Promise<boolean> {
         const user = await this.userRepository.findOneBy({ where: { email } });
 
@@ -77,16 +88,20 @@ export class UserService {
         return false;
     }
 
-    async updateUser(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    async updateUser(id: string, updateUserDto: UpdateUserDto){
         const objectId = this.getObjectId(id);
         const user = await this.userRepository.findOneBy({
             where: { _id: objectId },
+            
         });
+    
 
         if (!user) throw new NotFoundException('User not found');
 
-        Object.assign(user, updateUserDto);
-        return await this.userRepository.save(user);
+        const newUser = Object.assign(user, updateUserDto);
+        const { password, fcmToken,...savedUser} =  await this.userRepository.save(newUser);
+
+        return savedUser
     }
 
     async updatePassword(
@@ -241,13 +256,17 @@ export class UserService {
     }
 
     async updateUserPoint(userId:ObjectId, point:number){
-        const user = await this.findOne(userId)
+        
+        const user = await this.userRepository.findOne({where:{_id:userId}})
+
         if(!user){
             throw new NotFoundException("User not found")
         }
-
+        user.point+=point
         
-        await this.userRepository.update({ _id: user._id }, { point: point } );
+        const updatedUser = await  this.userRepository.save(user );
+
+        return this.userToUserDtoMapper(updatedUser)
     }
 
      async getUserGrowth(year:number){
@@ -272,4 +291,106 @@ export class UserService {
 
         return months; 
     }
+
+    async updateUserFcmToken(userId:ObjectId, token:string){
+        const user =await this.userRepository.findOne({where:{_id:userId}})
+
+        if(!user){
+            throw new NotFoundException("User not found")
+        }
+
+        await this.userRepository.update(user._id, {fcmToken:token})
+    }
+
+    async addOrEditAddress(userId:ObjectId, address:string){
+        const user = await this.userRepository.findOne({where:{_id:userId}})
+
+        if(!user){
+            throw new NotFoundException("User not found")
+        }
+
+        const {password, fcmToken, ...sanitizedUser} = user
+
+        sanitizedUser.address = address
+
+         await this.userRepository.save(user)
+         return sanitizedUser
+    }
+
+
+    async getAvatar(userId:ObjectId){
+        const user = await this.userRepository.findOne({where:{_id:userId}})
+
+        if(!user){
+            throw new NotFoundException("user not found")
+        }
+        const resolvedPath = path.resolve(user.avatar)
+        if(!fs.existsSync(resolvedPath)){
+            return null
+        }
+
+        return user.avatar
+    }
+
+    async uploadAvatar(userId:ObjectId, file:Express.Multer.File){
+        
+        const user = await this.userRepository.findOne({where:{_id:new ObjectId(userId)}})
+
+        if(!user){
+            throw new NotFoundException("User not found")
+        }
+
+
+        if(user.avatar){
+
+            try{
+                await this.deleteImage(user.avatar)
+            }catch(err){
+                console.log(err)
+            }
+        }
+
+        user.avatar = file.path
+
+        const updatedUser = await this.userRepository.save(user)
+
+        return this.userToUserDtoMapper(updatedUser)
+    }
+
+
+
+     private deleteImage(imagePath:string):Promise<void>{
+    
+            return new Promise(( resolve, reject) => {
+                const resolvedPath = path.resolve(imagePath)
+                if(fs.existsSync(resolvedPath)){
+                    fs.rm(resolvedPath, (err)=>{
+                        if(err)
+                            reject(new Error("Error deleting file"))
+                        resolve()
+                    })
+                }else{
+                    reject(new Error("File is not exist!"))
+                }
+            })
+    
+        }
+        async getUserEncryptedPassword(userId:ObjectId){
+            console.log("userId", userId)
+            const user = await this.userRepository.findOne({where:{_id:userId}})
+
+            if(!user){
+                throw new NotFoundException("User not found!")
+            }
+
+            return user.password
+        }
+
+        private userToUserDtoMapper(user:User){
+
+            return plainToInstance(userResponseDto, user, {
+                excludeExtraneousValues:true,
+                
+            })
+        }
 }
